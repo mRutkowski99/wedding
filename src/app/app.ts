@@ -1,12 +1,14 @@
-import { Component, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Component } from '@angular/core';
+import { HeroComponent } from '../components/hero.component';
+import { PhotoUpload } from '../components/photo-upload.component';
+import { BotanicalDivider } from '../components/botanical-divider.component';
+import { MealSchedule } from '../components/meal-schedule.component';
+import { BoothAndBar } from '../components/booth-and-bar.component';
+import { Footer } from '../components/footer.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  imports: [HeroComponent, PhotoUpload, BotanicalDivider, MealSchedule, BoothAndBar, Footer],
   templateUrl: './app.html',
-  styleUrl: './app.css'
 })
-export class App {
-  protected readonly title = signal('wedding');
-}
+export class App {}
