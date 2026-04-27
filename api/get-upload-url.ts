@@ -20,12 +20,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const filename = req.body?.filename || 'uploaded-file';
 
+    const accessToken = await auth.getAccessToken();
+    if (!accessToken) {
+      return res.status(500).json({ error: 'Failed to obtain Google access token' });
+    }
+
     const response = await fetch(
       'https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable',
       {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${await auth.getAccessToken()}`,
+          Authorization: `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -37,7 +42,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (!response.ok) {
       const errorText = await response.text();
-      return res.status(response.status).json({ error: 'Failed to create upload session', details: errorText });
+      return res
+        .status(response.status)
+        .json({ error: 'Failed to create upload session', details: errorText });
     }
 
     // Google returns a unique Session URI in the 'Location' header

@@ -29,6 +29,9 @@ yarn-error.log
 !.vscode/mcp.json
 .history/*
 
+# Vercel (local link; safe to commit if you prefer)
+.vercel
+
 # Miscellaneous
 /.angular/cache
 .sass-cache/
