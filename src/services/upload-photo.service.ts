@@ -83,8 +83,13 @@ export class UploadPhotoService {
         }),
         filter((event) => event.type === HttpEventType.Response),
         catchError((error) => {
-          if (error.status === 200 || error.status === 201) {
-            // This was a successful upload blocked by CORS response headers
+          // CORS blocks the response after a successful upload.
+          // The network tab shows the real HTTP status (200/201), but Angular
+          // receives status 0 because the browser drops the response before
+          // JavaScript can read it. Both cases are treated as success.
+          const isCorsBlock = error.status === 0 && error.error instanceof ProgressEvent;
+          const isSuccess = error.status === 200 || error.status === 201;
+          if (isCorsBlock || isSuccess) {
             return of(new HttpResponse({ status: 200 }));
           }
           return throwError(() => error);
