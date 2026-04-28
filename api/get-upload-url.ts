@@ -3,15 +3,19 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
-    const serviceAccountJson = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
-    if (!serviceAccountJson) {
-      return res.status(500).json({ error: 'Missing Google Service Account JSON' });
-    }
+    const oauth2Client = new google.auth.OAuth2(
+      process.env.GOOGLE_CLIENT_ID,
+      process.env.GOOGLE_CLIENT_SECRET,
+    );
 
-    const auth = new google.auth.GoogleAuth({
-      credentials: JSON.parse(serviceAccountJson),
-      scopes: ['https://www.googleapis.com/auth/drive.file'],
+    oauth2Client.setCredentials({
+      refresh_token: process.env.GOOGLE_REFRESH_TOKEN,
     });
+
+    const tokenResponse = await oauth2Client.getAccessToken();
+    const token = tokenResponse.token;
+
+    if (!token) throw new Error('Could not generate access token');
 
     const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID;
     if (!folderId) {
@@ -20,17 +24,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const filename = req.body?.filename || 'uploaded-file';
 
-    const accessToken = await auth.getAccessToken();
-    if (!accessToken) {
-      return res.status(500).json({ error: 'Failed to obtain Google access token' });
-    }
-
     const response = await fetch(
       'https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&supportsAllDrives=true',
       {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${accessToken}`,
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
           'X-Upload-Content-Type': 'image/jpeg',
         },
