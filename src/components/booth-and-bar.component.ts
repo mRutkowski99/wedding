@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 
 @Component({
   selector: 'booth-and-bar',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="py-12" id="booth">
       <div class="grid grid-cols-1 md:grid-cols-12 gap-6 max-w-5xl mx-auto text-center">

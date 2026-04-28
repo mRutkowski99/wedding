@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 
 @Component({
   selector: 'meal-schedule',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="py-12" id="schedule">
       <div class="text-center mb-12">

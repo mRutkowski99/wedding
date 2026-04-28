@@ -1,10 +1,11 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 
 @Component({
   selector: 'app-footer',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <footer
-      class="bg-footer-bg w-full py-12 flex flex-col items-center justify-center space-y-4 px-12 mt-12 mb-16 md:mb-0"
+      class="bg-footer-bg w-full py-12 flex flex-col items-center justify-center space-y-4 px-12 mt-12 mb-0"
     >
       <div class="text-center space-y-2">
         <p class="text-headline-md text-2xl text-footer-text italic">

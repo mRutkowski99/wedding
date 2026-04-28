@@ -1,8 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 
 @Component({
   selector: 'hero',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section
       class="min-h-[618px] flex flex-col justify-center items-center text-center py-section-gap relative"

@@ -112,6 +112,17 @@
   letter-spacing: 0.1em;
 }
 
+@keyframes toast-in {
+  from {
+    transform: translate(-50%, 100%);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
+}
+
 @layer base {
   body {
     background-color: var(--color-background);

@@ -1,9 +1,20 @@
-import { Component, inject, signal } from '@angular/core';
+import {
+  Component,
+  ChangeDetectionStrategy,
+  computed,
+  DestroyRef,
+  inject,
+  signal,
+} from '@angular/core';
 import { PhotoService } from '../services/photo.service';
 import { UploadPhotoService } from '../services/upload-photo.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ProgressBar } from './progress-bar.component';
+import { NotificationService } from '../services/notification.service';
 
 @Component({
   selector: 'photo-upload',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="py-12" id="upload">
       <div
@@ -20,21 +31,31 @@ import { UploadPhotoService } from '../services/upload-photo.service';
         </p>
 
         @if (photo(); as _photo) {
-          <div class="flex items-center space-x-2 text-label-md min-w-0">
+          <div class="flex items-center space-x-2 text-label-md min-w-0 mb-4">
             <span class="material-symbols-outlined"> attachment </span>
             <span class="truncate flex-1 text-left">{{ _photo.name }}</span>
-            <button class="text-error " (click)="removePhoto()">
-              <span class="material-symbols-outlined "> close </span>
-            </button>
+            @if (isIdle()) {
+              <button class="text-error " (click)="removePhoto()">
+                <span class="material-symbols-outlined "> close </span>
+              </button>
+            }
           </div>
-          <div class="flex items-center justify-end mt-4">
-            <button
-              (click)="uploadPhoto()"
-              class="bg-secondary text-on-secondary text-body-md px-4 py-2 rounded-full hover:bg-opacity-90 transition-all flex items-center justify-center space-x-2 "
-            >
-              <span class="material-symbols-outlined"> send </span>
-              <span>Wyślij</span>
-            </button>
+          <div class="flex items-center justify-end">
+            @if (isIdle()) {
+              <button
+                (click)="uploadPhoto()"
+                class="bg-secondary text-on-secondary text-body-md px-4 py-2 rounded-full hover:bg-opacity-90 transition-all flex items-center justify-center space-x-2 "
+              >
+                <span class="material-symbols-outlined"> send </span>
+                <span>Wyślij</span>
+              </button>
+            } @else {
+              <progress-bar
+                class="block flex-1"
+                [status]="uploadStatus()"
+                [progress]="uploadProgress() || 0"
+              />
+            }
           </div>
         } @else {
           <button
@@ -60,12 +81,18 @@ import { UploadPhotoService } from '../services/upload-photo.service';
       </div>
     </section>
   `,
+  imports: [ProgressBar],
 })
 export class PhotoUpload {
   private readonly _photoService = inject(PhotoService);
   private readonly _uploadPhotoService = inject(UploadPhotoService);
+  private readonly _notificationService = inject(NotificationService);
+  private readonly _destroyRef = inject(DestroyRef);
 
   protected readonly photo = signal<File | null>(null);
+  readonly uploadStatus = computed(() => this._uploadPhotoService.uploadProgress().status);
+  readonly uploadProgress = computed(() => this._uploadPhotoService.uploadProgress().progress);
+  readonly isIdle = computed(() => this.uploadStatus() === 'idle');
 
   async captureWithCamera(): Promise<void> {
     const photo = await this._photoService.captureWithCamera();
@@ -90,13 +117,17 @@ export class PhotoUpload {
 
     if (!photo) return;
 
-    this._uploadPhotoService.upload(photo).subscribe({
-      next: (response) => {
-        console.log(response);
-      },
-      error: (error) => {
-        console.error(error);
-      },
-    });
+    this._uploadPhotoService
+      .upload(photo)
+      .pipe(takeUntilDestroyed(this._destroyRef))
+      .subscribe({
+        next: () => {
+          this.photo.set(null);
+          this._notificationService.show('success', 'Zdjęcie zostało wysłane');
+        },
+        error: () => {
+          this._notificationService.show('error', 'Coś poszło nie tak');
+        },
+      });
   }
 }
