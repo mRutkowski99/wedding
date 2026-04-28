@@ -1,5 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { PhotoService } from '../services/photo.service';
+import { UploadPhotoService } from '../services/upload-photo.service';
 
 @Component({
   selector: 'photo-upload',
@@ -28,6 +29,7 @@ import { PhotoService } from '../services/photo.service';
           </div>
           <div class="flex items-center justify-end mt-4">
             <button
+              (click)="uploadPhoto()"
               class="bg-secondary text-on-secondary text-body-md px-4 py-2 rounded-full hover:bg-opacity-90 transition-all flex items-center justify-center space-x-2 "
             >
               <span class="material-symbols-outlined"> send </span>
@@ -61,6 +63,7 @@ import { PhotoService } from '../services/photo.service';
 })
 export class PhotoUpload {
   private readonly _photoService = inject(PhotoService);
+  private readonly _uploadPhotoService = inject(UploadPhotoService);
 
   protected readonly photo = signal<File | null>(null);
 
@@ -80,5 +83,20 @@ export class PhotoUpload {
 
   removePhoto(): void {
     this.photo.set(null);
+  }
+
+  uploadPhoto(): void {
+    const photo = this.photo();
+
+    if (!photo) return;
+
+    this._uploadPhotoService.upload(photo).subscribe({
+      next: (response) => {
+        console.log(response);
+      },
+      error: (error) => {
+        console.error(error);
+      },
+    });
   }
 }
