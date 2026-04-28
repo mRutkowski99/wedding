@@ -35,6 +35,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         },
         body: JSON.stringify({
           name: filename,
+          mimeType: 'image/jpeg',
           parents: [folderId],
         }),
       },

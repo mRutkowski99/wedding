@@ -1,7 +1,7 @@
-import { HttpClient, HttpEventType } from '@angular/common/http';
+import { HttpClient, HttpEventType, HttpResponse } from '@angular/common/http';
 import { computed, inject, Injectable, signal } from '@angular/core';
 import imageCompression from 'browser-image-compression';
-import { catchError, filter, map, Observable, switchMap, tap, throwError } from 'rxjs';
+import { catchError, filter, map, Observable, of, switchMap, tap, throwError } from 'rxjs';
 
 type GetUploadUrlResponse = {
   uploadUrl: string;
@@ -23,6 +23,8 @@ export class UploadPhotoService {
   readonly uploadProgress = computed(() => this._uploadProgress());
 
   upload(photo: File) {
+    this._uploadProgress.set({ status: 'compressing', progress: 0 });
+    
     return this._getUploadUrl(photo.name).pipe(
       switchMap(async (uploadUrl) => {
         const compressedPhoto = await this._compressPhoto(photo);
@@ -68,6 +70,7 @@ export class UploadPhotoService {
         observe: 'events',
         reportProgress: true,
         headers: { 'Content-Type': 'image/jpeg' },
+        responseType: 'text',
       })
       .pipe(
         tap((event) => {
@@ -77,14 +80,18 @@ export class UploadPhotoService {
               progress: Math.round((100 * event.loaded) / (event.total || 1)),
             });
           }
-
-          if (event.type === HttpEventType.Response) {
-            this._uploadProgress.set({
-              status: 'idle',
-            });
-          }
         }),
         filter((event) => event.type === HttpEventType.Response),
+        catchError((error) => {
+          if (error.status === 200 || error.status === 201) {
+            // This was a successful upload blocked by CORS response headers
+            return of(new HttpResponse({ status: 200 }));
+          }
+          return throwError(() => error);
+        }),
+        tap(() => {
+          this._uploadProgress.set({ status: 'idle' });
+        }),
       );
   }
 }
