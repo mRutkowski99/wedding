@@ -1,7 +1,7 @@
 import { HttpClient, HttpEventType } from '@angular/common/http';
 import { computed, inject, Injectable, signal } from '@angular/core';
 import imageCompression from 'browser-image-compression';
-import { map, Observable, switchMap, tap } from 'rxjs';
+import { catchError, filter, map, Observable, switchMap, tap, throwError } from 'rxjs';
 
 type GetUploadUrlResponse = {
   uploadUrl: string;
@@ -31,6 +31,12 @@ export class UploadPhotoService {
       switchMap(({ compressedPhoto, uploadUrl }) =>
         this._uploadToDrive(compressedPhoto, uploadUrl),
       ),
+      catchError((error) => {
+        this._uploadProgress.set({
+          status: 'idle',
+        });
+        return throwError(() => error);
+      }),
     );
   }
 
@@ -78,6 +84,7 @@ export class UploadPhotoService {
             });
           }
         }),
+        filter((event) => event.type === HttpEventType.Response),
       );
   }
 }

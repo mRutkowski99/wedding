@@ -32,6 +32,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         headers: {
           Authorization: `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
+          'X-Upload-Content-Type': 'image/jpeg',
         },
         body: JSON.stringify({
           name: filename,
