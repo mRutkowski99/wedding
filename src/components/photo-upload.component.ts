@@ -12,6 +12,7 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { NotificationService } from '../services/notification.service';
 import { LoadingSpinner } from './loading-spinner.component';
 import { untracked } from '@angular/core/primitives/signals';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'photo-upload',
@@ -30,26 +31,34 @@ import { untracked } from '@angular/core/primitives/signals';
         @if (isUploading()) {
           <loading-spinner [label]="statusMessage()" />
         } @else {
-          <button
-            (click)="captureWithCamera()"
-            class="bg-secondary text-on-secondary text-body-md px-8 py-4 rounded-full hover:bg-opacity-90 transition-all flex items-center justify-center mx-auto space-x-2 min-w-[265px]"
-          >
-            <span class="material-symbols-outlined">add_a_photo</span>
-            <span>Zrób zdjęcie</span>
-          </button>
+          <div class="flex flex-col gap-4 items-center">
+            <button
+              (click)="captureWithCamera()"
+              class="bg-secondary text-on-secondary text-body-md px-8 py-4 rounded-full hover:bg-opacity-90 transition-all flex items-center justify-center mx-auto space-x-2 min-w-[265px]"
+            >
+              <span class="material-symbols-outlined">add_a_photo</span>
+              <span>Zrób zdjęcie</span>
+            </button>
 
-          <button
-            (click)="pickFromGallery()"
-            class="border border-secondary text-secondary text-body-md px-8 py-4 rounded-full hover:bg-secondary/10 transition-all flex items-center justify-center mx-auto space-x-2 mt-4 min-w-[265px]"
-          >
-            <span class="material-symbols-outlined">upload</span>
-            <span>Wybierz z urządzenia</span>
-          </button>
+            <button
+              (click)="pickFromGallery()"
+              class="border border-secondary text-secondary text-body-md px-8 py-4 rounded-full hover:bg-secondary/10 transition-all flex items-center justify-center mx-auto space-x-2 min-w-[265px]"
+            >
+              <span class="material-symbols-outlined">upload</span>
+              <span>Wybierz z urządzenia</span>
+            </button>
+
+            <a
+              [routerLink]="['/gallery']"
+              class="text-body-md text-secondary hover:underline text-center"
+              >Zobacz zdjęcia</a
+            >
+          </div>
         }
       </div>
     </section>
   `,
-  imports: [LoadingSpinner],
+  imports: [LoadingSpinner, RouterLink],
 })
 export class PhotoUpload {
   private readonly _photoService = inject(PhotoService);

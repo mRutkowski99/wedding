@@ -1,13 +1,23 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { ApplicationConfig } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 
-import { routes } from './app.routes';
-
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideBrowserGlobalErrorListeners(),
-    provideRouter(routes),
-    provideHttpClient()
-  ]
+    provideHttpClient(),
+    provideRouter([
+      {
+        path: '',
+        loadComponent: () => import('../pages/main.page'),
+      },
+      {
+        path: 'gallery',
+        loadComponent: () => import('../pages/gallery.page'),
+      },
+      {
+        path: '**',
+        redirectTo: '',
+      },
+    ]),
+  ],
 };

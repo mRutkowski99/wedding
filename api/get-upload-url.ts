@@ -1,21 +1,9 @@
-import { google } from 'googleapis';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { getAccessToken } from '../get-access-token';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
-    const oauth2Client = new google.auth.OAuth2(
-      process.env.GOOGLE_CLIENT_ID,
-      process.env.GOOGLE_CLIENT_SECRET,
-    );
-
-    oauth2Client.setCredentials({
-      refresh_token: process.env.GOOGLE_REFRESH_TOKEN,
-    });
-
-    const tokenResponse = await oauth2Client.getAccessToken();
-    const token = tokenResponse.token;
-
-    if (!token) throw new Error('Could not generate access token');
+    const token = await getAccessToken();
 
     const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID;
     if (!folderId) {
