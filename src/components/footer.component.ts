@@ -11,13 +11,9 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
         <p class="text-headline-md text-2xl text-footer-text italic">
           Dziękujemy, że jesteście z nami!
         </p>
-        <p class="font-label-sm text-footer-text uppercase tracking-widest">
-          20 czerwca 2026
-        </p>
+        <p class="font-label-sm text-footer-text uppercase tracking-widest">20 czerwca 2026</p>
       </div>
-      <p class="font-body-md italic text-xs text-center text-footer-text">
-        With Love, Paulina & Miłosz
-      </p>
+      <p class="font-body-md italic text-xs text-center text-footer-text">Paulina & Miłosz</p>
     </footer>
   `,
 })

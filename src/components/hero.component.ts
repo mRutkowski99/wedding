@@ -8,7 +8,7 @@ import { NgOptimizedImage } from '@angular/common';
     <section
       class="min-h-[618px] flex flex-col justify-center items-center text-center py-section-gap relative"
     >
-      <div class="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none z-0">
+      <div class="absolute top-0 left-0 w-full h-full opacity-20 pointer-events-none z-0">
         <img
           alt="Botanical background"
           class="w-full h-full object-cover"
