@@ -4,12 +4,12 @@ import { RouterOutlet } from '@angular/router';
 @Component({
   selector: 'app-root',
   template: `
-    <main class="max-w-container-max mx-auto grow">
+    <main class="mx-auto w-full max-w-container-max">
       <router-outlet />
     </main>
 
     <footer
-      class="bg-footer-bg w-full py-12 flex flex-col items-center justify-center space-y-4 px-12 mt-12 mb-0"
+      class="bg-footer-bg mb-0 flex w-full shrink-0 flex-col items-center justify-center space-y-4 px-12 py-12"
     >
       <div class="text-center space-y-2">
         <p class="text-headline-md text-2xl text-footer-text italic">
@@ -23,7 +23,7 @@ import { RouterOutlet } from '@angular/router';
 
   imports: [RouterOutlet],
   host: {
-    class: 'min-h-screen flex flex-col',
+    class: 'flex min-h-dvh flex-col gap-12',
   },
 })
 export class App {}

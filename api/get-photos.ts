@@ -9,7 +9,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const response = await google.drive('v3').files.list(
       {
         q: `'${process.env.GOOGLE_DRIVE_FOLDER_ID}' in parents and mimeType contains 'image/'`,
-        fields: 'files(thumbnailLink)',
+        fields: 'files(id)',
       },
       { params: { trashed: false }, headers: { Authorization: `Bearer ${token}` } },
     );

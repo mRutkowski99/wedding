@@ -7,6 +7,10 @@
     {
       "source": "/((?!api/).*)",
       "destination": "/index.html"
+    },
+    {
+      "source": "/proxy-img/:id",
+      "destination": "https://lh3.googleusercontent.com/d/:id"
     }
   ]
 }
