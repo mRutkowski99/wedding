@@ -1,5 +1,5 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import { getAccessToken } from './_get-access-token';
+import { getAccessToken } from './_get-access-token.js';
 import { google } from 'googleapis';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
