@@ -56,7 +56,7 @@ export class ImageGalleryComponent {
         .map((id) => `proxy-img/${id}=s${ITEM_HEIGHT}`),
   });
 
-  readonly photos = computed(() => imagesMock);
+  readonly photos = computed(() => this._photosResource.value() ?? []);
 
   readonly trackByUrl = (_: number, url: string) => url;
 }
