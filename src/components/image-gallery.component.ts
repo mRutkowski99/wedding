@@ -47,7 +47,7 @@ export class ImageGalleryComponent {
 
   private readonly _photosResource = httpResource(() => ({ url: '/api/get-photos' }), {
     parse: (response) =>
-      (response as GetImagesResponse).map((item) => item.id).map((id) => `proxy-img/${id}=220`),
+      (response as GetImagesResponse).map((item) => item.id).map((id) => `proxy-img/${id}=s${this.itemSize}`),
   });
 
   readonly chunks = computed(() =>
