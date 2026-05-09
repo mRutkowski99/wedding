@@ -1,7 +1,7 @@
-import { ScrollingModule } from '@angular/cdk/scrolling';
+import { CdkVirtualScrollViewport, ScrollingModule } from '@angular/cdk/scrolling';
 import { NgOptimizedImage } from '@angular/common';
 import { httpResource } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, computed } from '@angular/core';
+import { afterNextRender, ChangeDetectionStrategy, Component, computed, viewChild } from '@angular/core';
 import { GridVirtualScrollDirective } from './grid-virtual-scroll.directive';
 import { LoadingSpinner } from './loading-spinner.component';
 
@@ -52,6 +52,12 @@ const GAP = 16; // gap-4 = 1rem = 16px
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ImageGalleryComponent {
+  private readonly _viewport = viewChild.required(CdkVirtualScrollViewport);
+
+  constructor() {
+    afterNextRender(() => this._viewport().scrollToOffset(0, 'instant'));
+  }
+
   readonly itemHeight = ITEM_HEIGHT;
   readonly columns = 2;
   readonly rowHeight = ITEM_HEIGHT + GAP;
