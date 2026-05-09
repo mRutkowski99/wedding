@@ -4,7 +4,7 @@ import { RouterOutlet } from '@angular/router';
 @Component({
   selector: 'app-root',
   template: `
-    <main class="max-w-container-max mx-auto">
+    <main class="max-w-container-max mx-auto grow">
       <router-outlet />
     </main>
 
@@ -22,5 +22,8 @@ import { RouterOutlet } from '@angular/router';
   `,
 
   imports: [RouterOutlet],
+  host: {
+    class: 'min-h-screen flex flex-col',
+  },
 })
 export class App {}
