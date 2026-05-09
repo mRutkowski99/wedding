@@ -50,8 +50,8 @@ export class UploadPhotoService {
 
   private _compressPhoto(photo: File): Promise<File> {
     return imageCompression(photo, {
-      maxSizeMB: 2,
-      maxWidthOrHeight: 1920,
+      maxSizeMB: 3,
+      maxWidthOrHeight: 2048,
       useWebWorker: true,
       initialQuality: 0.85,
       fileType: 'image/jpeg',

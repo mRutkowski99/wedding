@@ -30,8 +30,8 @@ const GAP = 16; // gap-4 = 1rem = 16px
             <img
               [ngSrc]="url"
               alt="Photo"
-              fill
-              class="max-h-full max-w-full object-cover"
+              [height]="itemHeight"
+              [width]="itemHeight"
               [priority]="i > 6"
             />
           </div>
@@ -56,7 +56,7 @@ export class ImageGalleryComponent {
         .map((id) => `proxy-img/${id}=s${ITEM_HEIGHT}`),
   });
 
-  readonly photos = computed(() => this._photosResource.value() ?? []);
+  readonly photos = computed(() => imagesMock);
 
   readonly trackByUrl = (_: number, url: string) => url;
 }
