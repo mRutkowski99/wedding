@@ -50,7 +50,7 @@ import { RouterLink } from '@angular/router';
 
             <a
               [routerLink]="['/gallery']"
-              class="text-body-md text-secondary hover:underline text-center"
+              class="text-body-md text-secondary hover:underline text-center px-8 py-4"
               >Zobacz zdjęcia</a
             >
           </div>

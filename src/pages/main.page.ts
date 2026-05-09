@@ -4,6 +4,7 @@ import { PhotoUpload } from '../components/photo-upload.component';
 import { BotanicalDivider } from '../components/botanical-divider.component';
 import { MealSchedule } from '../components/meal-schedule.component';
 import { BoothAndBar } from '../components/booth-and-bar.component';
+import { Footer } from '../components/footer.component';
 
 @Component({
   selector: 'main-page',
@@ -16,8 +17,10 @@ import { BoothAndBar } from '../components/booth-and-bar.component';
       <botanical-divider />
       <booth-and-bar />
     </div>
+
+    <app-footer />
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [HeroComponent, PhotoUpload, BotanicalDivider, MealSchedule, BoothAndBar],
+  imports: [HeroComponent, PhotoUpload, BotanicalDivider, MealSchedule, BoothAndBar, Footer],
 })
 export default class MainPage {}
