@@ -13,7 +13,7 @@ const GAP = 16; // gap-4 = 1rem = 16px
 @Component({
   selector: 'image-gallery',
   template: `
-    <div class="h-screen w-full">
+    <div class="h-screen w-full p-4">
       <cdk-virtual-scroll-viewport
         gridVirtualScroll
         appendOnly
