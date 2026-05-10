@@ -26,7 +26,7 @@ const GAP = 16; // gap-4 = 1rem = 16px
         <div class="grid grid-cols-2 gap-4">
           <div
             *cdkVirtualFor="let url of photos(); let i = index; trackBy: trackByUrl"
-            class="relative flex items-center justify-center overflow-hidden bg-surface-variant"
+            class="relative flex items-center justify-center overflow-hidden bg-surface-variant rounded-md"
             [style.height.px]="itemHeight"
           >
             <div #placeholder class="absolute inset-0 flex items-center justify-center">
