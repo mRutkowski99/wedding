@@ -16,8 +16,9 @@ import {
 } from '@angular/core';
 import { GridVirtualScrollDirective } from './grid-virtual-scroll.directive';
 import { LoadingSpinner } from './loading-spinner.component';
-import type { GalleryPhoto } from './photo-lightbox.component';
+import type { GalleryPhoto } from '../models/gallery-photo';
 import { PhotoLightboxComponent } from './photo-lightbox.component';
+import { PendingGalleryPhotosService } from '../services/pending-gallery-photos.service';
 
 type GetImagesResponse = GalleryPhoto[];
 
@@ -108,6 +109,7 @@ const GAP = 16; // gap-4 = 1rem = 16px
 })
 export class ImageGalleryComponent {
   private readonly _destroyRef = inject(DestroyRef);
+  private readonly _pendingGalleryPhotos = inject(PendingGalleryPhotosService);
   private readonly _viewport = viewChild(CdkVirtualScrollViewport);
   private readonly _galleryContainer = viewChild.required<ElementRef<HTMLElement>>('galleryContainer');
 
@@ -130,14 +132,23 @@ export class ImageGalleryComponent {
     parse: (response) => response as GetImagesResponse,
   });
 
-  readonly photos = computed(() => this._photosResource.value() ?? []);
+  readonly photos = computed(() => {
+    const apiPhotos = this._photosResource.value() ?? [];
+    const pendingPhotos = this._pendingGalleryPhotos.pending();
+    const pendingIds = new Set(pendingPhotos.map((photo) => photo.id));
+
+    return [
+      ...pendingPhotos,
+      ...apiPhotos.filter((photo) => !pendingIds.has(photo.id)),
+    ];
+  });
   readonly isLoading = computed(() => {
     const status = this._photosResource.status();
     return status === 'idle' || status === 'loading';
   });
   readonly hasError = computed(() => this._photosResource.status() === 'error');
   readonly isEmpty = computed(
-    () => this._photosResource.status() === 'resolved' && this.photos().length === 0,
+    () => !this.isLoading() && !this.hasError() && this.photos().length === 0,
   );
 
   readonly isLightboxOpen = signal(false);
@@ -157,6 +168,17 @@ export class ImageGalleryComponent {
       });
       observer.observe(container);
       this._destroyRef.onDestroy(() => observer.disconnect());
+    });
+
+    effect(() => {
+      const apiPhotos = this._photosResource.value();
+      if (!apiPhotos) {
+        return;
+      }
+
+      untracked(() => {
+        this._pendingGalleryPhotos.removeIfPresentIn(apiPhotos.map((photo) => photo.id));
+      });
     });
 
     effect(() => {

@@ -13,9 +13,8 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import type { GalleryPhoto } from '../models/gallery-photo';
 import { LoadingSpinner } from './loading-spinner.component';
-
-export type GalleryPhoto = { id: string; url: string; previewUrl: string };
 
 @Component({
   selector: 'photo-lightbox',
@@ -42,7 +41,9 @@ export type GalleryPhoto = { id: string; url: string; previewUrl: string };
 
       <div class="relative flex min-h-0 flex-1 items-center justify-center px-2 pb-2">
         @if (isImageLoading()) {
-          <loading-spinner label="Ładowanie..." />
+          <div class="absolute inset-0 flex items-center justify-center">
+            <loading-spinner label="Ładowanie..." tone="inverse" />
+          </div>
         }
         <img
           [ngSrc]="currentPhoto().previewUrl"
@@ -51,7 +52,7 @@ export type GalleryPhoto = { id: string; url: string; previewUrl: string };
           height="1600"
           priority
           class="max-h-full max-w-full object-contain transition-opacity duration-300"
-          [class.opacity-0]="isImageLoading()"
+          [class.invisible]="isImageLoading()"
           (load)="isImageLoading.set(false)"
           (error)="isImageLoading.set(false)"
         />

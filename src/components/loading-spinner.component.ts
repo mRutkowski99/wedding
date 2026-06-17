@@ -1,11 +1,11 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 
 @Component({
   selector: 'loading-spinner',
   template: `
     <svg
       aria-hidden="true"
-      class="w-6 h-6 text-secondary-container animate-spin fill-on-secondary-container"
+      [class]="iconClass()"
       viewBox="0 0 100 101"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -21,7 +21,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
     </svg>
 
     @if (label()) {
-      <span class="text-label-sm text-on-surface">{{ label() }}</span>
+      <span [class]="labelClass()">{{ label() }}</span>
     } @else {
       <span class="sr-only">Loading...</span>
     }
@@ -34,4 +34,17 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 })
 export class LoadingSpinner {
   readonly label = input<string>();
+  readonly tone = input<'default' | 'inverse'>('default');
+
+  readonly iconClass = computed(() =>
+    this.tone() === 'inverse'
+      ? 'h-6 w-6 animate-spin text-inverse-on-surface fill-inverse-on-surface'
+      : 'h-6 w-6 animate-spin text-secondary-container fill-on-secondary-container',
+  );
+
+  readonly labelClass = computed(() =>
+    this.tone() === 'inverse'
+      ? 'text-label-sm text-inverse-on-surface'
+      : 'text-label-sm text-on-surface',
+  );
 }

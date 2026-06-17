@@ -8,7 +8,10 @@ import {
   from,
   ignoreElements,
   startWith,
+  tap,
 } from 'rxjs';
+import { toGalleryPhoto } from '../models/gallery-photo';
+import { PendingGalleryPhotosService } from './pending-gallery-photos.service';
 
 type GetUploadSignatureResponse = {
   signature: string;
@@ -20,9 +23,15 @@ type GetUploadSignatureResponse = {
 
 export type UploadPhotoStatus = 'preparing' | 'compressing' | 'uploading' | 'complete';
 
+type CloudinaryUploadResponse = {
+  public_id: string;
+  secure_url: string;
+};
+
 @Injectable({ providedIn: 'root' })
 export class UploadPhotoService {
   private readonly _http = inject(HttpClient);
+  private readonly _pendingGalleryPhotos = inject(PendingGalleryPhotosService);
 
   upload(photo: File): Observable<UploadPhotoStatus> {
     return this._getUploadSignature().pipe(
@@ -64,9 +73,13 @@ export class UploadPhotoService {
     formData.append('signature', signatureData.signature);
     formData.append('folder', signatureData.folder);
 
-    return this._http.post(
+    return this._http.post<CloudinaryUploadResponse>(
       `https://api.cloudinary.com/v1_1/${signatureData.cloudName}/image/upload`,
-      formData
+      formData,
+    ).pipe(
+      tap((response) => {
+        this._pendingGalleryPhotos.add(toGalleryPhoto(response.public_id, response.secure_url));
+      }),
     );
   }
 }
