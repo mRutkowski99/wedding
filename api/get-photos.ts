@@ -1,9 +1,6 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import { v2 as cloudinary } from 'cloudinary';
-import {
-  GALLERY_PREVIEW_SIZE,
-  GALLERY_THUMBNAIL_SIZE,
-} from '../src/models/gallery-photo';
+import { toGalleryPhoto } from '../shared/gallery-photo';
 
 cloudinary.config({
   cloud_name: process.env.CLAUDINARY_NAME,
@@ -20,23 +17,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     res.setHeader('Cache-Control', 's-maxage=1, stale-while-revalidate=86400');
 
-    const photos = response.resources.map((resource: { public_id: string; secure_url: string }) => {
-      const url = resource.secure_url;
-      const thumbnailUrl = url.replace(
-        '/upload/',
-        `/upload/c_fill,g_auto,h_${GALLERY_THUMBNAIL_SIZE},w_${GALLERY_THUMBNAIL_SIZE}/f_auto/q_auto/`,
-      );
-      const previewUrl = url.replace(
-        '/upload/',
-        `/upload/c_limit,w_${GALLERY_PREVIEW_SIZE},h_${GALLERY_PREVIEW_SIZE}/f_auto/q_auto/`,
-      );
-
-      return {
-        id: resource.public_id,
-        url: thumbnailUrl,
-        previewUrl,
-      };
-    });
+    const photos = response.resources.map((resource: { public_id: string; secure_url: string }) =>
+      toGalleryPhoto(resource.public_id, resource.secure_url),
+    );
 
     return res.status(200).json(photos);
   } catch (error) {
