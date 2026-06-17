@@ -5,12 +5,14 @@ import {
   Component,
   computed,
   DestroyRef,
+  effect,
   ElementRef,
   inject,
   input,
   model,
   output,
   signal,
+  untracked,
   viewChild,
 } from '@angular/core';
 import type { GalleryPhoto } from '../models/gallery-photo';
@@ -40,7 +42,7 @@ import { LoadingSpinner } from './loading-spinner.component';
       </div>
 
       <div class="relative flex min-h-0 flex-1 items-center justify-center px-2 pb-2">
-        @if (isImageLoading()) {
+        @if (showLoadingSpinner()) {
           <div class="absolute inset-0 flex items-center justify-center">
             <loading-spinner label="Ładowanie..." tone="inverse" />
           </div>
@@ -53,8 +55,8 @@ import { LoadingSpinner } from './loading-spinner.component';
           priority
           class="max-h-full max-w-full object-contain transition-opacity duration-300"
           [class.invisible]="isImageLoading()"
-          (load)="isImageLoading.set(false)"
-          (error)="isImageLoading.set(false)"
+          (load)="onImageLoad()"
+          (error)="onImageLoad()"
         />
         <p class="sr-only" aria-live="polite">
           Zdjęcie {{ activeIndex() + 1 }} z {{ photos().length }}
@@ -97,6 +99,8 @@ import { LoadingSpinner } from './loading-spinner.component';
   ],
 })
 export class PhotoLightboxComponent {
+  private static readonly SPINNER_DELAY_MS = 250;
+
   private readonly _destroyRef = inject(DestroyRef);
 
   readonly photos = input.required<GalleryPhoto[]>();
@@ -106,19 +110,32 @@ export class PhotoLightboxComponent {
   private readonly _closeButton = viewChild.required<ElementRef<HTMLButtonElement>>('closeButton');
 
   readonly isImageLoading = signal(true);
+  readonly showLoadingSpinner = signal(false);
   readonly currentPhoto = computed(() => this.photos()[this.activeIndex()]);
   readonly hasPrevious = computed(() => this.activeIndex() > 0);
   readonly hasNext = computed(() => this.activeIndex() < this.photos().length - 1);
 
+  private _spinnerDelayTimer: ReturnType<typeof setTimeout> | null = null;
+
   constructor() {
+    effect(() => {
+      this.currentPhoto().previewUrl;
+      untracked(() => this._startImageLoad());
+    });
+
     afterNextRender(() => {
       document.body.style.overflow = 'hidden';
       this._closeButton().nativeElement.focus();
     });
 
     this._destroyRef.onDestroy(() => {
+      this._clearSpinnerDelay();
       document.body.style.overflow = '';
     });
+  }
+
+  onImageLoad(): void {
+    this._finishImageLoad();
   }
 
   close(): void {
@@ -127,14 +144,12 @@ export class PhotoLightboxComponent {
 
   goPrevious(): void {
     if (this.hasPrevious()) {
-      this.isImageLoading.set(true);
       this.activeIndex.update((index) => index - 1);
     }
   }
 
   goNext(): void {
     if (this.hasNext()) {
-      this.isImageLoading.set(true);
       this.activeIndex.update((index) => index + 1);
     }
   }
@@ -153,6 +168,30 @@ export class PhotoLightboxComponent {
         event.preventDefault();
         this.goNext();
         break;
+    }
+  }
+
+  private _startImageLoad(): void {
+    this._clearSpinnerDelay();
+    this.isImageLoading.set(true);
+    this.showLoadingSpinner.set(false);
+    this._spinnerDelayTimer = setTimeout(() => {
+      if (this.isImageLoading()) {
+        this.showLoadingSpinner.set(true);
+      }
+    }, PhotoLightboxComponent.SPINNER_DELAY_MS);
+  }
+
+  private _finishImageLoad(): void {
+    this._clearSpinnerDelay();
+    this.isImageLoading.set(false);
+    this.showLoadingSpinner.set(false);
+  }
+
+  private _clearSpinnerDelay(): void {
+    if (this._spinnerDelayTimer !== null) {
+      clearTimeout(this._spinnerDelayTimer);
+      this._spinnerDelayTimer = null;
     }
   }
 }
