@@ -6,5 +6,8 @@ import { ImageGalleryComponent } from '../components/image-gallery.component';
   template: ` <image-gallery /> `,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ImageGalleryComponent],
+  host: {
+    class: 'block h-dvh overflow-hidden',
+  },
 })
 export default class GalleryPage {}

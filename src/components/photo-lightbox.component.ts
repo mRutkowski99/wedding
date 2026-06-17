@@ -10,70 +10,84 @@ import {
   input,
   model,
   output,
+  signal,
   viewChild,
 } from '@angular/core';
+import { LoadingSpinner } from './loading-spinner.component';
 
-type Photo = { id: string; url: string };
+export type GalleryPhoto = { id: string; url: string; previewUrl: string };
 
 @Component({
   selector: 'photo-lightbox',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div
-      class="fixed inset-0 z-50 flex items-center justify-center bg-inverse-surface/90 p-4"
+      class="fixed inset-0 z-50 flex flex-col bg-inverse-surface/95"
       role="dialog"
       aria-modal="true"
       aria-label="Podgląd zdjęcia"
       (keydown)="onKeydown($event)"
     >
-      <button
-        #closeButton
-        type="button"
-        class="absolute top-4 right-4 flex h-11 w-11 items-center justify-center rounded-full bg-inverse-on-surface/10 text-inverse-on-surface transition-colors hover:bg-inverse-on-surface/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-inverse-on-surface"
-        aria-label="Zamknij"
-        (click)="close()"
-      >
-        <span class="material-symbols-outlined text-2xl" aria-hidden="true">close</span>
-      </button>
+      <div class="flex shrink-0 justify-end p-3">
+        <button
+          #closeButton
+          type="button"
+          class="flex h-11 w-11 items-center justify-center rounded-full bg-inverse-on-surface/10 text-inverse-on-surface transition-colors hover:bg-inverse-on-surface/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-inverse-on-surface"
+          aria-label="Zamknij"
+          (click)="close()"
+        >
+          <span class="material-symbols-outlined text-2xl" aria-hidden="true">close</span>
+        </button>
+      </div>
 
-      @if (hasPrevious()) {
+      <div class="relative flex min-h-0 flex-1 items-center justify-center px-2 pb-2">
+        @if (isImageLoading()) {
+          <loading-spinner label="Ładowanie..." />
+        }
+        <img
+          [ngSrc]="currentPhoto().previewUrl"
+          [alt]="'Zdjęcie ' + (activeIndex() + 1) + ' z ' + photos().length"
+          width="1600"
+          height="1600"
+          priority
+          class="max-h-full max-w-full object-contain transition-opacity duration-300"
+          [class.opacity-0]="isImageLoading()"
+          (load)="isImageLoading.set(false)"
+          (error)="isImageLoading.set(false)"
+        />
+        <p class="sr-only" aria-live="polite">
+          Zdjęcie {{ activeIndex() + 1 }} z {{ photos().length }}
+        </p>
+      </div>
+
+      <div class="flex shrink-0 items-center justify-center gap-4 px-4 pb-6 pt-2">
         <button
           type="button"
-          class="absolute left-4 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-inverse-on-surface/10 text-inverse-on-surface transition-colors hover:bg-inverse-on-surface/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-inverse-on-surface"
+          class="flex h-12 w-12 items-center justify-center rounded-full bg-inverse-on-surface/10 text-inverse-on-surface transition-colors hover:bg-inverse-on-surface/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-inverse-on-surface disabled:opacity-30"
           aria-label="Poprzednie zdjęcie"
+          [disabled]="!hasPrevious()"
           (click)="goPrevious()"
         >
-          <span class="material-symbols-outlined text-3xl" aria-hidden="true">chevron_left</span>
+          <span class="material-symbols-outlined text-3xl" aria-hidden="true">arrow_back</span>
         </button>
-      }
 
-      <figure class="flex max-h-full max-w-full flex-col items-center gap-4">
-        <img
-          [ngSrc]="currentPhoto().url"
-          [alt]="'Zdjęcie ' + (activeIndex() + 1) + ' z ' + photos().length"
-          width="1200"
-          height="900"
-          priority
-          class="max-h-[calc(100vh-8rem)] max-w-[calc(100vw-8rem)] object-contain"
-        />
-        <figcaption class="sr-only" aria-live="polite">
-          Zdjęcie {{ activeIndex() + 1 }} z {{ photos().length }}
-        </figcaption>
-      </figure>
+        <span class="min-w-16 text-center text-body-md text-inverse-on-surface" aria-hidden="true">
+          {{ activeIndex() + 1 }} / {{ photos().length }}
+        </span>
 
-      @if (hasNext()) {
         <button
           type="button"
-          class="absolute right-4 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-inverse-on-surface/10 text-inverse-on-surface transition-colors hover:bg-inverse-on-surface/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-inverse-on-surface"
+          class="flex h-12 w-12 items-center justify-center rounded-full bg-inverse-on-surface/10 text-inverse-on-surface transition-colors hover:bg-inverse-on-surface/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-inverse-on-surface disabled:opacity-30"
           aria-label="Następne zdjęcie"
+          [disabled]="!hasNext()"
           (click)="goNext()"
         >
-          <span class="material-symbols-outlined text-3xl" aria-hidden="true">chevron_right</span>
+          <span class="material-symbols-outlined text-3xl" aria-hidden="true">arrow_forward</span>
         </button>
-      }
+      </div>
     </div>
   `,
-  imports: [NgOptimizedImage],
+  imports: [NgOptimizedImage, LoadingSpinner],
   providers: [
     {
       provide: IMAGE_LOADER,
@@ -84,12 +98,13 @@ type Photo = { id: string; url: string };
 export class PhotoLightboxComponent {
   private readonly _destroyRef = inject(DestroyRef);
 
-  readonly photos = input.required<Photo[]>();
+  readonly photos = input.required<GalleryPhoto[]>();
   readonly activeIndex = model.required<number>();
   readonly closed = output<void>();
 
   private readonly _closeButton = viewChild.required<ElementRef<HTMLButtonElement>>('closeButton');
 
+  readonly isImageLoading = signal(true);
   readonly currentPhoto = computed(() => this.photos()[this.activeIndex()]);
   readonly hasPrevious = computed(() => this.activeIndex() > 0);
   readonly hasNext = computed(() => this.activeIndex() < this.photos().length - 1);
@@ -111,12 +126,14 @@ export class PhotoLightboxComponent {
 
   goPrevious(): void {
     if (this.hasPrevious()) {
+      this.isImageLoading.set(true);
       this.activeIndex.update((index) => index - 1);
     }
   }
 
   goNext(): void {
     if (this.hasNext()) {
+      this.isImageLoading.set(true);
       this.activeIndex.update((index) => index + 1);
     }
   }

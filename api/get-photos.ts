@@ -16,18 +16,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     res.setHeader('Cache-Control', 's-maxage=1, stale-while-revalidate=86400');
 
-    const photos = response.resources.map((resource: any) => {
-      // Create an optimized thumbnail URL
-      // secure_url format: https://res.cloudinary.com/<cloud_name>/image/upload/v<version>/<public_id>.<ext>
+    const photos = response.resources.map((resource: { public_id: string; secure_url: string }) => {
       const url = resource.secure_url;
-      const optimizedUrl = url.replace(
+      const thumbnailUrl = url.replace(
         '/upload/',
-        '/upload/c_fill,g_auto,h_220,w_220/f_auto/q_auto/'
+        '/upload/c_fill,g_auto,h_220,w_220/f_auto/q_auto/',
       );
-      
+      const previewUrl = url.replace(
+        '/upload/',
+        '/upload/c_limit,w_1600,h_1600/f_auto/q_auto/',
+      );
+
       return {
         id: resource.public_id,
-        url: optimizedUrl
+        url: thumbnailUrl,
+        previewUrl,
       };
     });
 
