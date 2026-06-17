@@ -9,12 +9,9 @@ import { Component, ChangeDetectionStrategy } from '@angular/core';
         <h2 class="text-headline-md text-primary italic">Plan Posiłków</h2>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-        @for (meal of meals; track meal.time) {
+        @for (meal of meals; track $index) {
           <div class="rounded-lg p-6 border border-primary/20 relative overflow-hidden bg-surface">
             <div class="relative z-10">
-              <div class="text-label-sm text-primary uppercase tracking-widest mb-2">
-                {{ meal.time }}
-              </div>
               <h3 class="text-headline-md text-2xl text-on-surface mb-2">{{ meal.title }}</h3>
               <p class="text-body-md text-tertiary">
                 {{ meal.description }}
@@ -29,24 +26,29 @@ import { Component, ChangeDetectionStrategy } from '@angular/core';
 export class MealSchedule {
   meals = [
     {
-      time: '16:00',
       title: 'Uroczysty Obiad',
-      description: 'Rosół z domowym makaronem, wybór mięs pieczonych z zestawem surówek',
+      description:
+        'Rosół z makaronem, mix mięs pieczonych z ziemniakami lub kluskami i zestawem surówek',
     },
     {
-      time: '19:00',
-      title: 'Pierwsze Danie Gorące',
-      description: 'Krem z białych warzyw z grzankami i prażonymi migdałami',
+      title: 'Deser',
+      description: 'Tarta jabłkowa z lodami',
     },
     {
-      time: '21:00',
-      title: 'Drugie Danie Gorące',
-      description: 'Polędwiczki wieprzowe w sosie kurkowym z opiekanymi ziemniakami',
+      title: 'Pierwsza Kolacja',
+      description: 'Polędwiczki wieprzowe w sosie borowikowym oraz risotto',
     },
     {
-      time: '23:00',
-      title: 'Trzecie Danie Gorące',
-      description: 'Tradycyjny barszcz czerwony z pasztecikami z ciasta francuskiego',
+      title: 'Druga Kolacja',
+      description: 'Mix roladek z pieczonymi półksiężycami w ziołach i surówką',
+    },
+    {
+      title: 'Tort',
+      description: 'Tort wiśniowo-orzechowy',
+    },
+    {
+      title: 'Trzecia Kolacja',
+      description: 'Barszcz czerwony z pierogiem',
     },
   ];
 }
