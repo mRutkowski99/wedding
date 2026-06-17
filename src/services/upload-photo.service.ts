@@ -1,21 +1,21 @@
-import { HttpClient, HttpResponse } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import imageCompression from 'browser-image-compression';
 import {
-  catchError,
   endWith,
-  map,
   Observable,
-  of,
   switchMap,
-  throwError,
   from,
   ignoreElements,
   startWith,
 } from 'rxjs';
 
-type GetUploadUrlResponse = {
-  uploadUrl: string;
+type GetUploadSignatureResponse = {
+  signature: string;
+  timestamp: number;
+  cloudName: string;
+  apiKey: string;
+  folder: string;
 };
 
 export type UploadPhotoStatus = 'preparing' | 'compressing' | 'uploading' | 'complete';
@@ -25,11 +25,11 @@ export class UploadPhotoService {
   private readonly _http = inject(HttpClient);
 
   upload(photo: File): Observable<UploadPhotoStatus> {
-    return this._getUploadUrl(photo.name).pipe(
-      switchMap((uploadUrl) =>
+    return this._getUploadSignature().pipe(
+      switchMap((signatureData) =>
         from(this._compressPhoto(photo)).pipe(
           switchMap((compressedPhoto) =>
-            this._uploadToDrive(compressedPhoto, uploadUrl).pipe(
+            this._uploadToCloudinary(compressedPhoto, signatureData).pipe(
               ignoreElements(),
               endWith('complete' as const),
               startWith('uploading' as const),
@@ -42,10 +42,8 @@ export class UploadPhotoService {
     );
   }
 
-  private _getUploadUrl(filename: string): Observable<string> {
-    return this._http
-      .post<GetUploadUrlResponse>('/api/get-upload-url', { filename })
-      .pipe(map((response) => response.uploadUrl));
+  private _getUploadSignature(): Observable<GetUploadSignatureResponse> {
+    return this._http.post<GetUploadSignatureResponse>('/api/get-upload-url', {});
   }
 
   private _compressPhoto(photo: File): Promise<File> {
@@ -58,25 +56,17 @@ export class UploadPhotoService {
     });
   }
 
-  private _uploadToDrive(photo: File, uploadUrl: string) {
-    return this._http
-      .put(uploadUrl, photo, {
-        headers: { 'Content-Type': 'image/jpeg' },
-        responseType: 'text',
-      })
-      .pipe(
-        catchError((error) => {
-          // CORS blocks the response after a successful upload.
-          // The network tab shows the real HTTP status (200/201), but Angular
-          // receives status 0 because the browser drops the response before
-          // JavaScript can read it. Both cases are treated as success.
-          const isCorsBlock = error.status === 0 && error.error instanceof ProgressEvent;
-          const isSuccess = error.status === 200 || error.status === 201;
-          if (isCorsBlock || isSuccess) {
-            return of(new HttpResponse({ status: 200 }));
-          }
-          return throwError(() => error);
-        }),
-      );
+  private _uploadToCloudinary(photo: File, signatureData: GetUploadSignatureResponse) {
+    const formData = new FormData();
+    formData.append('file', photo);
+    formData.append('api_key', signatureData.apiKey);
+    formData.append('timestamp', signatureData.timestamp.toString());
+    formData.append('signature', signatureData.signature);
+    formData.append('folder', signatureData.folder);
+
+    return this._http.post(
+      `https://api.cloudinary.com/v1_1/${signatureData.cloudName}/image/upload`,
+      formData
+    );
   }
 }

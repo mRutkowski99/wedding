@@ -1,50 +1,34 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getAccessToken } from './_get-access-token.js';
+import { v2 as cloudinary } from 'cloudinary';
+
+cloudinary.config({
+  cloud_name: process.env.CLAUDINARY_NAME,
+  api_key: process.env.CLAUDINARY_API_KEY,
+  api_secret: process.env.CLAUDINARY_API_SECRET,
+});
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
-    const token = await getAccessToken();
+    const timestamp = Math.round(new Date().getTime() / 1000);
+    const paramsToSign = {
+      timestamp,
+      folder: 'wedding',
+    };
 
-    const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID;
-    if (!folderId) {
-      return res.status(500).json({ error: 'Missing Google Drive Folder ID' });
-    }
-
-    const filename = req.body?.filename || 'uploaded-file';
-
-    const response = await fetch(
-      'https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&supportsAllDrives=true',
-      {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          'X-Upload-Content-Type': 'image/jpeg',
-        },
-        body: JSON.stringify({
-          name: filename,
-          mimeType: 'image/jpeg',
-          parents: [folderId],
-        }),
-      },
+    const signature = cloudinary.utils.api_sign_request(
+      paramsToSign,
+      process.env.CLAUDINARY_API_SECRET!
     );
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      return res
-        .status(response.status)
-        .json({ error: 'Failed to create upload session', details: errorText });
-    }
-
-    // Google returns a unique Session URI in the 'Location' header
-    const uploadUrl = response.headers.get('location');
-    if (!uploadUrl) {
-      return res.status(500).json({ error: 'Missing location header in Google Drive response' });
-    }
-
-    return res.status(200).json({ uploadUrl });
+    return res.status(200).json({
+      signature,
+      timestamp,
+      cloudName: process.env.CLAUDINARY_NAME,
+      apiKey: process.env.CLAUDINARY_API_KEY,
+      folder: 'wedding',
+    });
   } catch (error) {
-    console.error('Error creating upload URL:', error);
+    console.error('Error creating upload signature:', error);
     return res.status(500).json({ error: 'Internal Server Error' });
   }
 }
