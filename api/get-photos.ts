@@ -1,6 +1,25 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import { v2 as cloudinary } from 'cloudinary';
-import { toGalleryPhoto } from '../shared/gallery-photo';
+
+const GALLERY_THUMBNAIL_SIZE = 220;
+const GALLERY_PREVIEW_SIZE = 1600;
+
+function toGalleryPhoto(publicId: string, secureUrl: string) {
+  const thumbnailUrl = secureUrl.replace(
+    '/upload/',
+    `/upload/c_fill,g_auto,h_${GALLERY_THUMBNAIL_SIZE},w_${GALLERY_THUMBNAIL_SIZE}/f_auto/q_auto/`,
+  );
+  const previewUrl = secureUrl.replace(
+    '/upload/',
+    `/upload/c_limit,w_${GALLERY_PREVIEW_SIZE},h_${GALLERY_PREVIEW_SIZE}/f_auto/q_auto/`,
+  );
+
+  return {
+    id: publicId,
+    url: thumbnailUrl,
+    previewUrl,
+  };
+}
 
 cloudinary.config({
   cloud_name: process.env.CLAUDINARY_NAME,
