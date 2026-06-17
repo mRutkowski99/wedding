@@ -16,14 +16,15 @@ import {
 } from '@angular/core';
 import { GridVirtualScrollDirective } from './grid-virtual-scroll.directive';
 import { LoadingSpinner } from './loading-spinner.component';
-import type { GalleryPhoto } from '../models/gallery-photo';
+import {
+  GALLERY_GRID_GAP,
+  GALLERY_THUMBNAIL_SIZE,
+  type GalleryPhoto,
+} from '../models/gallery-photo';
 import { PhotoLightboxComponent } from './photo-lightbox.component';
 import { PendingGalleryPhotosService } from '../services/pending-gallery-photos.service';
 
 type GetImagesResponse = GalleryPhoto[];
-
-const THUMBNAIL_SIZE = 220;
-const GAP = 16; // gap-4 = 1rem = 16px
 
 @Component({
   selector: 'image-gallery',
@@ -119,12 +120,12 @@ export class ImageGalleryComponent {
   readonly itemSize = computed(() => {
     const width = this.containerWidth();
     if (width === 0) {
-      return THUMBNAIL_SIZE;
+      return GALLERY_THUMBNAIL_SIZE;
     }
-    return Math.floor((width - GAP * (this.columns - 1)) / this.columns);
+    return Math.floor((width - GALLERY_GRID_GAP * (this.columns - 1)) / this.columns);
   });
 
-  readonly rowHeight = computed(() => this.itemSize() + GAP);
+  readonly rowHeight = computed(() => this.itemSize() + GALLERY_GRID_GAP);
   readonly minBufferPx = computed(() => this.rowHeight() * 2);
   readonly maxBufferPx = computed(() => this.rowHeight() * 4);
 

@@ -1,5 +1,9 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import { v2 as cloudinary } from 'cloudinary';
+import {
+  GALLERY_PREVIEW_SIZE,
+  GALLERY_THUMBNAIL_SIZE,
+} from '../src/models/gallery-photo';
 
 cloudinary.config({
   cloud_name: process.env.CLAUDINARY_NAME,
@@ -20,11 +24,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const url = resource.secure_url;
       const thumbnailUrl = url.replace(
         '/upload/',
-        '/upload/c_fill,g_auto,h_220,w_220/f_auto/q_auto/',
+        `/upload/c_fill,g_auto,h_${GALLERY_THUMBNAIL_SIZE},w_${GALLERY_THUMBNAIL_SIZE}/f_auto/q_auto/`,
       );
       const previewUrl = url.replace(
         '/upload/',
-        '/upload/c_limit,w_1600,h_1600/f_auto/q_auto/',
+        `/upload/c_limit,w_${GALLERY_PREVIEW_SIZE},h_${GALLERY_PREVIEW_SIZE}/f_auto/q_auto/`,
       );
 
       return {
